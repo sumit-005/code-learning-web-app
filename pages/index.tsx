@@ -1,11 +1,54 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "@next/font/google";
+import styles from "@/styles/Home.module.css";
+import Link from "next/link";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { app } from "@/firebase";
+import { useEffect, useState } from "react";
+import { Group, Card, Text, Flex, Container } from "@mantine/core";
+import { IconPlus } from "@tabler/icons";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
+type Blog = {
+  title: string;
+  description: string;
+  codeBlocks: {
+    language: string;
+    code: string;
+  }[];
+};
 export default function Home() {
+  // get list of blogs from firestore
+
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  console.log("blogs", blogs);
+
+  useEffect(() => {
+    const db = getFirestore(app);
+    const blogRef = collection(db, "blogs");
+    getDocs(blogRef).then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        // extract data from doc.data()
+        const data = doc.data();
+        const blog = {
+          title: data.title,
+          description: data.description,
+          codeBlocks: data.codeBlocks,
+        };
+        setBlogs((prev) => [...prev, blog]);
+      });
+      setBlogs((prev) => {
+        const unique = prev.filter(
+          (blog, index, self) =>
+            index === self.findIndex((t) => t.title === blog.title)
+        );
+        return unique;
+      });
+    });
+  }, []);
+
   return (
     <>
       <Head>
@@ -15,109 +58,57 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
+        <Container size="md" mt="xl">
+          <Flex
+            style={{
+              flexWrap: "wrap",
+            }}
+            gap="sm"
+            align="center"
           >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
+            {blogs.map((blog) => (
+              <Link
+                key={blog.title.slice(0, 10)}
+                href={{
+                  pathname: `/blog/${blog.title.slice(0, 10)}`,
+                  query: {
+                    blog: JSON.stringify(blog),
+                  },
+                }}
+              >
+                <Card
+                  withBorder
+                  w="250px"
+                  h="250px"
+                  style={{
+                    cursor: "pointer",
+                  }}
+                >
+                  <Text fz="xl" weight={600} lineClamp={2} mb="lg">
+                    {blog.title}
+                  </Text>
+                  <Text lineClamp={5}>{blog.description}</Text>
+                </Card>
+              </Link>
+            ))}
 
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+            <Link href="/create">
+              <Card
+                withBorder
+                w="250px"
+                h="250px"
+                style={{
+                  cursor: "pointer",
+                }}
+              >
+                <Flex justify="center" align="center" h="100%">
+                  <IconPlus size={50} />
+                </Flex>
+              </Card>
+            </Link>
+          </Flex>
+        </Container>
       </main>
     </>
-  )
+  );
 }
