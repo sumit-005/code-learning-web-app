@@ -14,7 +14,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { CodeEditor } from "./components/CodeEditor";
+import { CodeEditor } from "../components/CodeEditor";
 import { randomId } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { IconAd, IconPlus, IconTrash } from "@tabler/icons";
