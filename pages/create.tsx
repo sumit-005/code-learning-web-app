@@ -54,12 +54,15 @@ export const Create = () => {
   const form = useForm({
     initialValues: {
       title: "",
+      key: "",
       description: "",
       codeBlocks: [{ language: "", code: "", key: randomId() }],
     },
     validate: {
       title: (value) =>
         value.length < 2 ? "Title must have at least 2 letters" : null,
+      key: (value) =>
+        value.length < 2 ? "Key must have at least 2 letters" : null,
       description: (value) =>
         value.length < 2 ? "Description must have at least 2 letters" : null,
       codeBlocks: {
@@ -86,14 +89,13 @@ export const Create = () => {
     const db = getFirestore(app);
     const blogRef = collection(db, "blogs");
     addDoc(blogRef, {
+      key: form.values.key,
       title: form.values.title,
       description: form.values.description,
       codeBlocks: codeData,
     }).then((docRef) => {
-      console.log("docRef", docRef);
       form.reset();
       router.push("/");
-      console.log("Document written with ID: ", docRef.id);
     });
   };
 
@@ -155,6 +157,14 @@ export const Create = () => {
             name="title"
             id="title"
             {...form.getInputProps("title")}
+          />
+        </Input.Wrapper>
+        <Input.Wrapper label="Key" mb="lg">
+          <Input
+            type="text"
+            name="key"
+            id="key"
+            {...form.getInputProps("key")}
           />
         </Input.Wrapper>
         <Input.Wrapper label="Description" mb="lg">

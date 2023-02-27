@@ -1,5 +1,7 @@
+import { Container } from "@mantine/core";
 import Head from "next/head";
 import React from "react";
+import { HeaderComponent } from "./Header";
 
 export const Layout = (props: {
   children:
@@ -20,7 +22,10 @@ export const Layout = (props: {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>{props.children}</main>
+      <main>
+        <HeaderComponent />
+        <Container size="xl">{props.children}</Container>
+      </main>
     </>
   );
 };

@@ -6,24 +6,40 @@ import Link from "next/link";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { app } from "@/firebase";
 import { useEffect, useState } from "react";
-import { Group, Card, Text, Flex, Container } from "@mantine/core";
+import {
+  Group,
+  Card,
+  Text,
+  Flex,
+  Container,
+  createStyles,
+  Skeleton,
+} from "@mantine/core";
 import { IconPlus } from "@tabler/icons";
 
 const inter = Inter({ subsets: ["latin"] });
 
 type Blog = {
   title: string;
+  key: string;
   description: string;
   codeBlocks: {
     language: string;
     code: string;
   }[];
 };
+
+export const useStyles = createStyles((theme) => ({
+  link: {
+    textDecoration: "none",
+  },
+}));
+
 export default function Home() {
   // get list of blogs from firestore
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  console.log("blogs", blogs);
+  const { classes, cx } = useStyles();
 
   useEffect(() => {
     const db = getFirestore(app);
@@ -32,8 +48,10 @@ export default function Home() {
       querySnapshot.forEach((doc) => {
         // extract data from doc.data()
         const data = doc.data();
+        console.log("data", data);
         const blog = {
           title: data.title,
+          key: data.key,
           description: data.description,
           codeBlocks: data.codeBlocks,
         };
@@ -58,41 +76,25 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <Container size="md" mt="xl">
-          <Flex
-            style={{
-              flexWrap: "wrap",
-            }}
-            gap="sm"
-            align="center"
-          >
-            {blogs.map((blog) => (
-              <Link
-                key={blog.title.slice(0, 10)}
-                href={{
-                  pathname: `/blog/${blog.title.slice(0, 10)}`,
-                  query: {
-                    blog: JSON.stringify(blog),
-                  },
-                }}
-              >
-                <Card
-                  withBorder
-                  w="250px"
-                  h="250px"
-                  style={{
-                    cursor: "pointer",
-                  }}
-                >
-                  <Text fz="xl" weight={600} lineClamp={2} mb="lg">
-                    {blog.title}
-                  </Text>
-                  <Text lineClamp={5}>{blog.description}</Text>
-                </Card>
-              </Link>
-            ))}
-
-            <Link href="/create">
+        <Flex
+          style={{
+            flexWrap: "wrap",
+          }}
+          gap="sm"
+          align="center"
+          mt="xl"
+        >
+          {blogs.map((blog) => (
+            <Link
+              key={blog.key}
+              href={{
+                pathname: `/blog/${blog.key}`,
+                query: {
+                  blog: JSON.stringify(blog),
+                },
+              }}
+              className={classes.link}
+            >
               <Card
                 withBorder
                 w="250px"
@@ -100,14 +102,51 @@ export default function Home() {
                 style={{
                   cursor: "pointer",
                 }}
+                shadow="sm"
               >
-                <Flex justify="center" align="center" h="100%">
-                  <IconPlus size={50} />
-                </Flex>
+                <Text
+                  fz="xl"
+                  weight={600}
+                  lineClamp={2}
+                  mb="lg"
+                  style={{
+                    textDecoration: "none !important",
+                  }}
+                  td="none"
+                >
+                  {blog.title}
+                </Text>
+                <Text
+                  lineClamp={5}
+                  style={{
+                    textDecoration: "none",
+                  }}
+                >
+                  {blog.description}
+                </Text>
               </Card>
             </Link>
-          </Flex>
-        </Container>
+          ))}
+
+          {blogs.length == 0 && <Skeleton height={250} width={250} />}
+          {blogs.length == 0 && <Skeleton height={250} width={250} />}
+          {blogs.length == 0 && <Skeleton height={250} width={250} />}
+
+          <Link href="/create">
+            <Card
+              withBorder
+              w="250px"
+              h="250px"
+              style={{
+                cursor: "pointer",
+              }}
+            >
+              <Flex justify="center" align="center" h="100%">
+                <IconPlus size={50} />
+              </Flex>
+            </Card>
+          </Link>
+        </Flex>
       </main>
     </>
   );
